@@ -1,0 +1,56 @@
+{
+  "name": "@coveops/commerce-react-sample",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@coveo/headless": "^3.51.3",
+    "@coveo/platform-client": "^58.0.0",
+    "abortcontroller-polyfill": "^1.7.8",
+    "bootstrap": "^5.3.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "isomorphic-fetch": "^3.0.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-router-dom": "^7.16.0"
+  },
+  "scripts": {
+    "start": "concurrently --raw \"npm run start:server\" \"npm run dev\"",
+    "start:server": "tsx server/server.ts",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.3.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.1",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^6.0.2",
+    "concurrently": "^7.6.0",
+    "jsdom": "^26.1.0",
+    "tsx": "^4.20.6",
+    "typescript": "~5.6.2",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
+  }
+}
