@@ -187,6 +187,7 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     controller: FilterSuggestions | CategoryFilterSuggestions;
     value: RegularFacetSearchResult | CategoryFacetSearchResult;
   }) => {
+    cancelDebounce();
     // Not on search page so we cannot use 'controller.select(value)' method.
     // Instead we retrieve parameters to redirect to search page.
     const parameters =

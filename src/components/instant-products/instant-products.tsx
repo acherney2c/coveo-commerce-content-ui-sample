@@ -104,7 +104,9 @@ export default function InstantProducts(props: IInstantProductsProps) {
           </div>
         )
       ) : (
-        <div className="list-group-item text-muted">None</div>
+        <div className="list-group-item text-muted">
+          {state.isLoading ? 'Loading...' : 'None'}
+        </div>
       )}
     </div>
   );
