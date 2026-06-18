@@ -36,7 +36,9 @@ export interface UseSuggestionDrivenInstantProductsResult {
    * otherwise null.
    */
   suggestionNotice: string | null;
-  /** The query that actually drives ProductSuggest (trimmed). */
+  /** The trimmed desired query. Reflects the current input regardless of whether a
+   *  ProductSuggest call has been fired (i.e. also returned when below threshold or
+   *  while suggestions are loading). Use for display in 'No results found for…' messages. */
   effectiveQuery: string;
 }
 

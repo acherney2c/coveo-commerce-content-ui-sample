@@ -118,14 +118,18 @@ export default function SearchBox(props: ISearchBoxProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() === '') {
+    const trimmedValue = inputValue.trim();
+    if (trimmedValue === '') {
+      clear();
       return;
     }
+    // Normalize the visible input to the trimmed value.
+    setInputValue(trimmedValue);
     searchInputRef.current?.focus();
     // Flush any pending debounce so the controller is always in sync with
     // the visible input before submitting, regardless of debounceMs/minChars.
     cancelDebounce();
-    updateControllers(inputValue.trim());
+    updateControllers(trimmedValue);
     searchBoxController.submit();
     setDropdownVisible(false);
   };
@@ -169,7 +173,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  inputValue === ''
+                  inputValue.trim() === ''
                 }
                 onClick={clear}
               >
@@ -181,7 +185,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  inputValue === ''
+                  inputValue.trim() === ''
                 }
               >
                 Submit
