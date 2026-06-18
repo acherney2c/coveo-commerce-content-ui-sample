@@ -6,16 +6,18 @@ import type {
   Product,
 } from '@coveo/headless/commerce';
 import { buildProductUrl } from '../../utils/product-url.js';
-import { useInstantProductsFallback } from '../../hooks/use-instant-products-fallback.js';
+import { useSuggestionDrivenInstantProducts } from '../../hooks/use-suggestion-driven-instant-products.js';
 
 interface IInstantProductsProps {
   controller: HeadlessInstantProducts;
-  /** Query suggestions to use for fallback when no products found */
+  /** Query suggestions for the current input; the first drives Instant Products */
   querySuggestions?: string[];
-  /** The current search query */
+  /** The Typed Query (exact text the user entered) */
   currentQuery?: string;
-  /** Whether to enable the fallback-to-suggestions feature */
-  enableFallback?: boolean;
+  /** Whether QuerySuggest is still loading suggestions for the current input */
+  isLoadingSuggestions?: boolean;
+  /** Minimum typed-query characters before ProductSuggest fires. Default: 3 */
+  minChars?: number;
 }
 
 export default function InstantProducts(props: IInstantProductsProps) {
@@ -23,8 +25,10 @@ export default function InstantProducts(props: IInstantProductsProps) {
     controller,
     querySuggestions = [],
     currentQuery = '',
-    enableFallback = false
+    isLoadingSuggestions = false,
+    minChars = 3,
   } = props;
+  const meetsThreshold = currentQuery.trim().length >= minChars;
   const [state, setState] = useState<InstantProductsState>(controller.state);
   const navigate = useNavigate();
 
@@ -35,23 +39,20 @@ export default function InstantProducts(props: IInstantProductsProps) {
     return () => unsubscribe();
   }, [controller]);
 
-  // Callback when fallback is triggered
-  const handleFallback = useCallback((suggestion: string) => {
-    controller.updateQuery(suggestion);
+  // Fires a ProductSuggest call for the desired query.
+  const handleQuery = useCallback((query: string) => {
+    controller.updateQuery(query);
   }, [controller]);
 
-  // Use the fallback hook to handle race conditions properly
-  const {
-    shouldShowNoResults,
-    correctionQuery,
-    isShowingFallback,
-    originalQuery,
-  } = useInstantProductsFallback({
+  // The hook owns the decision of which query drives Instant Products.
+  const { shouldShowNoResults, suggestionNotice, effectiveQuery } = useSuggestionDrivenInstantProducts({
     products: state.products,
     isLoading: state.isLoading,
-    suggestions: enableFallback ? querySuggestions : [],
-    currentQuery,
-    onFallback: handleFallback,
+    suggestions: querySuggestions,
+    isLoadingSuggestions,
+    typedQuery: currentQuery,
+    onQuery: handleQuery,
+    minChars,
   });
 
   const selectProduct = (product: Product) => {
@@ -72,35 +73,36 @@ export default function InstantProducts(props: IInstantProductsProps) {
         )}
       </div>
 
-      {/* Fallback notice when showing alternative results */}
+      {/* Transparency notice when Instant Products are driven by the First Suggestion. */}
       {/* Note: React JSX automatically escapes text content, preventing XSS */}
-      {isShowingFallback && originalQuery && (
+      {suggestionNotice && (
         <div className="list-group-item list-group-item-warning small py-2">
-          <p className="mb-1">
-            No results found for <strong>"<span>{originalQuery}</span>"</strong>
-          </p>
-          <p className="mb-0">
-            Showing results for <strong>"<span>{correctionQuery}</span>"</strong>
-          </p>
+          Showing results for <strong>"<span>{suggestionNotice}</span>"</strong>
         </div>
       )}
 
-      {state.products.length > 0 ? (
-        state.products.map((product) => (
-          <button
-            key={product.permanentid}
-            className="list-group-item list-group-item-action"
-            type="button"
-            onClick={() => selectProduct(product)}
-          >
-            {product.ec_name} ({product.ec_product_id})
-          </button>
-        ))
-      ) : shouldShowNoResults ? (
-        <div className="list-group-item text-muted">
-          {/* React JSX automatically escapes text content, preventing XSS */}
-          No results found for <strong>"<span>{currentQuery}</span>"</strong>
-        </div>
+      {!isLoadingSuggestions && meetsThreshold ? (
+        state.products.length > 0 ? (
+          state.products.map((product) => (
+            <button
+              key={product.permanentid}
+              className="list-group-item list-group-item-action"
+              type="button"
+              onClick={() => selectProduct(product)}
+            >
+              {product.ec_name} ({product.ec_product_id})
+            </button>
+          ))
+        ) : shouldShowNoResults ? (
+          <div className="list-group-item text-muted">
+            {/* React JSX automatically escapes text content, preventing XSS */}
+            No results found for <strong>"<span>{effectiveQuery}</span>"</strong>
+          </div>
+        ) : (
+          <div className="list-group-item text-muted">
+            {state.isLoading ? 'Loading...' : 'None'}
+          </div>
+        )
       ) : (
         <div className="list-group-item text-muted">
           {state.isLoading ? 'Loading...' : 'None'}

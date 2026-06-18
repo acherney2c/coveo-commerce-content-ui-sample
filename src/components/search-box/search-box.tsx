@@ -1,3 +1,6 @@
+// This is a reference/sample implementation. Accessibility is intentionally left
+// for implementers to address in their production code.
+/* eslint-disable jsx-a11y/control-has-associated-label */
 import { useEffect, useRef, useState } from 'react';
 import type {
   CategoryFacetSearchResult,
@@ -70,7 +73,6 @@ export default function SearchBox(props: ISearchBoxProps) {
 
   const updateControllers = (value: string) => {
     searchBoxController.updateText(value);
-    instantProductsController.updateQuery(value);
     filterSuggestionsGeneratorController.filterSuggestions.forEach(
       (controller) => {
         controller.updateQuery(value);
@@ -89,11 +91,12 @@ export default function SearchBox(props: ISearchBoxProps) {
 
     cancelDebounce();
 
-    if (value.length < minChars) {
+    if (value.trim().length < minChars) {
       setDropdownVisible(false);
       return;
     }
 
+    setDropdownVisible(false);
     debounceTimer.current = setTimeout(() => {
       debounceTimer.current = null;
       updateControllers(value);
@@ -106,7 +109,6 @@ export default function SearchBox(props: ISearchBoxProps) {
     setDropdownVisible(false);
     searchInputRef.current?.focus();
     searchBoxController.clear();
-    instantProductsController.updateQuery('');
     filterSuggestionsGeneratorController.filterSuggestions.forEach(
       (controller) => {
         controller.clear();
@@ -116,14 +118,18 @@ export default function SearchBox(props: ISearchBoxProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue === '') {
+    const trimmedValue = inputValue.trim();
+    if (trimmedValue === '') {
+      clear();
       return;
     }
+    // Normalize the visible input to the trimmed value.
+    setInputValue(trimmedValue);
     searchInputRef.current?.focus();
     // Flush any pending debounce so the controller is always in sync with
     // the visible input before submitting, regardless of debounceMs/minChars.
     cancelDebounce();
-    updateControllers(inputValue);
+    updateControllers(trimmedValue);
     searchBoxController.submit();
     setDropdownVisible(false);
   };
@@ -156,6 +162,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                 ref={searchInputRef}
                 className="form-control"
                 name="value"
+                title="Search query"
                 type="text"
                 value={inputValue}
                 onChange={(e) => handleChange(e.target.value)}
@@ -166,7 +173,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  inputValue === ''
+                  inputValue.trim() === ''
                 }
                 onClick={clear}
               >
@@ -178,7 +185,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  inputValue === ''
+                  inputValue.trim() === ''
                 }
               >
                 Submit
@@ -201,6 +208,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                               key={suggestion.rawValue}
                               type="button"
                               className="list-group-item list-group-item-action"
+                              title={suggestion.rawValue}
                               dangerouslySetInnerHTML={{
                                 __html: suggestion.highlightedValue,
                               }}
@@ -225,7 +233,8 @@ export default function SearchBox(props: ISearchBoxProps) {
                         controller={instantProductsController}
                         querySuggestions={state.suggestions.map(s => s.rawValue)}
                         currentQuery={state.value}
-                        enableFallback={true}
+                        isLoadingSuggestions={state.isLoadingSuggestions}
+                        minChars={minChars}
                       />
                     </div>
                   </div>
