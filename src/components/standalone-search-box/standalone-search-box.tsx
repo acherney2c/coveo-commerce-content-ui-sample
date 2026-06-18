@@ -39,7 +39,7 @@ interface IStandaloneSearchBoxProps {
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
   /** Milliseconds to wait after the last keystroke before querying controllers. Default: 300 */
   debounceMs?: number;
-  /** Minimum number of characters required before querying controllers. Default: 3 */
+  /** Minimum characters required before controller updates fire while typing. Submit bypasses this gate. Default: 3 */
   minChars?: number;
 }
 

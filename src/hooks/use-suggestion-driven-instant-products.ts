@@ -107,7 +107,7 @@ export function useSuggestionDrivenInstantProducts(
       : null;
 
   return {
-    shouldShowNoResults: settled && !hasProducts && suggestions.length === 0,
+    shouldShowNoResults: settled && !hasProducts && (suggestions.length === 0 || suggestionNotice === null),
     suggestionNotice,
   };
 }
