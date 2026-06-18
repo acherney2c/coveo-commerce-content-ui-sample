@@ -91,7 +91,7 @@ export default function SearchBox(props: ISearchBoxProps) {
 
     cancelDebounce();
 
-    if (value.length < minChars) {
+    if (value.trim().length < minChars) {
       setDropdownVisible(false);
       return;
     }
@@ -117,14 +117,14 @@ export default function SearchBox(props: ISearchBoxProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue === '') {
+    if (inputValue.trim() === '') {
       return;
     }
     searchInputRef.current?.focus();
     // Flush any pending debounce so the controller is always in sync with
     // the visible input before submitting, regardless of debounceMs/minChars.
     cancelDebounce();
-    updateControllers(inputValue);
+    updateControllers(inputValue.trim());
     searchBoxController.submit();
     setDropdownVisible(false);
   };

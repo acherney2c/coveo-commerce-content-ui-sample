@@ -28,6 +28,7 @@ export default function InstantProducts(props: IInstantProductsProps) {
     isLoadingSuggestions = false,
     minChars = 3,
   } = props;
+  const meetsThreshold = currentQuery.trim().length >= minChars;
   const [state, setState] = useState<InstantProductsState>(controller.state);
   const navigate = useNavigate();
 
@@ -80,26 +81,30 @@ export default function InstantProducts(props: IInstantProductsProps) {
         </div>
       )}
 
-      {state.products.length > 0 ? (
-        state.products.map((product) => (
-          <button
-            key={product.permanentid}
-            className="list-group-item list-group-item-action"
-            type="button"
-            onClick={() => selectProduct(product)}
-          >
-            {product.ec_name} ({product.ec_product_id})
-          </button>
-        ))
-      ) : shouldShowNoResults ? (
-        <div className="list-group-item text-muted">
-          {/* React JSX automatically escapes text content, preventing XSS */}
-          No results found for <strong>"<span>{currentQuery}</span>"</strong>
-        </div>
+      {!isLoadingSuggestions && meetsThreshold ? (
+        state.products.length > 0 ? (
+          state.products.map((product) => (
+            <button
+              key={product.permanentid}
+              className="list-group-item list-group-item-action"
+              type="button"
+              onClick={() => selectProduct(product)}
+            >
+              {product.ec_name} ({product.ec_product_id})
+            </button>
+          ))
+        ) : shouldShowNoResults ? (
+          <div className="list-group-item text-muted">
+            {/* React JSX automatically escapes text content, preventing XSS */}
+            No results found for <strong>"<span>{currentQuery}</span>"</strong>
+          </div>
+        ) : (
+          <div className="list-group-item text-muted">
+            {state.isLoading ? 'Loading...' : 'None'}
+          </div>
+        )
       ) : (
-        <div className="list-group-item text-muted">
-          {state.isLoading ? 'Loading...' : 'None'}
-        </div>
+        <div className="list-group-item text-muted">None</div>
       )}
     </div>
   );
