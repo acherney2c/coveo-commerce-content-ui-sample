@@ -1,3 +1,5 @@
+// This is a reference/sample implementation. Accessibility is intentionally left
+// for implementers to address in their production code.
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -125,10 +127,14 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
 
     cancelDebounce();
 
-    if (value.length < minChars) {
+    if (value.trim().length < minChars) {
       setDropdownVisible(false);
       return;
     }
+
+    // Hide the dropdown while waiting for the debounce so stale suggestions are
+    // not shown; updateControllers re-shows it when the debounce fires.
+    setDropdownVisible(false);
 
     debounceTimer.current = setTimeout(() => {
       debounceTimer.current = null;
@@ -151,14 +157,15 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue === '') {
+    const trimmedValue = inputValue.trim();
+    if (trimmedValue === '') {
       return;
     }
     searchInputRef.current?.focus();
     // Flush any pending debounce so the controller is always in sync with
     // the visible input before submitting, regardless of debounceMs/minChars.
     cancelDebounce();
-    updateControllers(inputValue);
+    updateControllers(trimmedValue);
     standaloneSearchBoxController.submit();
     setDropdownVisible(false);
   };

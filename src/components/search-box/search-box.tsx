@@ -1,3 +1,5 @@
+// This is a reference/sample implementation. Accessibility is intentionally left
+// for implementers to address in their production code.
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import { useEffect, useRef, useState } from 'react';
 import type {

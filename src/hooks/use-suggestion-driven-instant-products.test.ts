@@ -339,4 +339,52 @@ describe('useSuggestionDrivenInstantProducts', () => {
             expect(result.current.shouldShowNoResults).toBe(false);
         });
     });
+
+    it('re-fires onQuery after dropping below the threshold and re-typing the same query', async () => {
+        const onQuery = vi.fn();
+
+        const { rerender } = renderHook(
+            (props) => useSuggestionDrivenInstantProducts(props),
+            {
+                initialProps: {
+                    products: [] as Product[],
+                    isLoading: false,
+                    suggestions: ['drill bit'],
+                    isLoadingSuggestions: false,
+                    typedQuery: 'drill',
+                    onQuery,
+                },
+            }
+        );
+
+        await act(async () => {});
+        expect(onQuery).toHaveBeenCalledTimes(1);
+        expect(onQuery).toHaveBeenCalledWith('drill bit');
+
+        // User drops below the threshold; lastFiredRef should reset.
+        await act(async () => {
+            rerender({
+                products: [],
+                isLoading: false,
+                suggestions: ['drill bit'],
+                isLoadingSuggestions: false,
+                typedQuery: 'dr',
+                onQuery,
+            });
+        });
+
+        // User re-types the same query: onQuery should fire again.
+        await act(async () => {
+            rerender({
+                products: [],
+                isLoading: false,
+                suggestions: ['drill bit'],
+                isLoadingSuggestions: false,
+                typedQuery: 'drill',
+                onQuery,
+            });
+        });
+
+        expect(onQuery).toHaveBeenCalledTimes(2);
+    });
 });
