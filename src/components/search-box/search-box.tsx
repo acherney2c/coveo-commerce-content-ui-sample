@@ -96,6 +96,7 @@ export default function SearchBox(props: ISearchBoxProps) {
       return;
     }
 
+    setDropdownVisible(false);
     debounceTimer.current = setTimeout(() => {
       debounceTimer.current = null;
       updateControllers(value);

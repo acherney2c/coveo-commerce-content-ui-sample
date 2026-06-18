@@ -77,11 +77,13 @@ export function useSuggestionDrivenInstantProducts(
   // Gating on `isLoading` is what tells a settled query apart from one whose
   // load we never saw (so a late, empty render does not flash "No results").
   const [loadingQuery, setLoadingQuery] = useState<string | null>(null);
+  const prevIsLoadingRef = useRef(false);
   useEffect(() => {
-    if (isLoading && trimmedDesiredQuery.length > 0) {
+    if (isLoading && !prevIsLoadingRef.current && trimmedDesiredQuery.length > 0) {
       setLoadingQuery(trimmedDesiredQuery);
     }
-  }, [isLoading, desiredQuery]);
+    prevIsLoadingRef.current = isLoading;
+  }, [isLoading, trimmedDesiredQuery]);
 
   // The current desired query has settled once it finished the load we saw begin.
   const settled =

@@ -216,7 +216,7 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  inputValue === ''
+                  inputValue.trim() === ''
                 }
                 onClick={clear}
               >
@@ -228,7 +228,7 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  inputValue === ''
+                  inputValue.trim() === ''
                 }
               >
                 Submit
