@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Product } from '@coveo/headless/commerce';
 
 /**
@@ -57,7 +57,10 @@ export function useSuggestionDrivenInstantProducts(
   const meetsThreshold = typedQuery.trim().length >= minChars;
   const lastFiredRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  // useLayoutEffect fires synchronously after DOM mutations but before paint,
+  // so onQuery is called before the browser can render stale products from
+  // the previous query when isLoadingSuggestions flips to false.
+  useLayoutEffect(() => {
     if (!meetsThreshold) {
       // Reset so re-entering the same query after dropping below the threshold
       // (or clearing) fires onQuery again instead of being deduplicated.
