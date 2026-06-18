@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/control-has-associated-label */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type {
@@ -34,6 +35,10 @@ interface IStandaloneSearchBoxProps {
   standaloneSearchBoxController: HeadlessStandaloneSearchBox;
   instantProductsController: InstantProducts;
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
+  /** Milliseconds to wait after the last keystroke before querying controllers. Default: 300 */
+  debounceMs?: number;
+  /** Minimum number of characters required before querying controllers. Default: 3 */
+  minChars?: number;
 }
 
 export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
@@ -41,18 +46,34 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     standaloneSearchBoxController,
     instantProductsController,
     filterSuggestionsGeneratorController,
+    debounceMs = 300,
+    minChars = 3,
   } = props;
   const [state, setState] = useState<StandaloneSearchBoxState>(
     standaloneSearchBoxController.state
   );
+  const [inputValue, setInputValue] = useState(
+    standaloneSearchBoxController.state.value
+  );
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks the last value we observed from the controller to avoid overwriting
+  // in-progress user input during unrelated controller state updates (e.g. loading).
+  const controllerValueRef = useRef(standaloneSearchBoxController.state.value);
 
   useEffect(() => {
     const unsubscribe = standaloneSearchBoxController.subscribe(() => {
       const newState = standaloneSearchBoxController.state;
       setState(newState);
+
+      // Only sync inputValue when the controller's value actually changes to avoid
+      // overwriting in-progress typing during unrelated updates (loading, etc.).
+      if (newState.value !== controllerValueRef.current) {
+        controllerValueRef.current = newState.value;
+        setInputValue(newState.value);
+      }
 
       // Navigate to route when redirect URL is updated in state.
       if (newState.redirectTo) {
@@ -72,14 +93,20 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     return () => unsubscribe();
   }, [standaloneSearchBoxController, navigate]);
 
-  const handleChange = (value: string) => {
-    if (value === '') {
-      clear();
-      return;
-    }
+  // Cancel any pending debounce on unmount
+  useEffect(() => {
+    return () => cancelDebounce();
+  }, []);
 
+  const cancelDebounce = () => {
+    if (debounceTimer.current !== null) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+  };
+
+  const updateControllers = (value: string) => {
     standaloneSearchBoxController.updateText(value);
-    instantProductsController.updateQuery(value);
     filterSuggestionsGeneratorController.filterSuggestions.forEach(
       (controller) => {
         controller.updateQuery(value);
@@ -88,11 +115,33 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     setDropdownVisible(true);
   };
 
+  const handleChange = (value: string) => {
+    if (value === '') {
+      clear();
+      return;
+    }
+
+    setInputValue(value);
+
+    cancelDebounce();
+
+    if (value.length < minChars) {
+      setDropdownVisible(false);
+      return;
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      debounceTimer.current = null;
+      updateControllers(value);
+    }, debounceMs);
+  };
+
   const clear = () => {
+    cancelDebounce();
+    setInputValue('');
     setDropdownVisible(false);
     searchInputRef.current?.focus();
     standaloneSearchBoxController.clear();
-    instantProductsController.updateQuery(state.value);
     filterSuggestionsGeneratorController.filterSuggestions.forEach(
       (controller) => {
         controller.clear();
@@ -102,11 +151,20 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (inputValue === '') {
+      return;
+    }
+    searchInputRef.current?.focus();
+    // Flush any pending debounce so the controller is always in sync with
+    // the visible input before submitting, regardless of debounceMs/minChars.
+    cancelDebounce();
+    updateControllers(inputValue);
     standaloneSearchBoxController.submit();
     setDropdownVisible(false);
   };
 
   const selectSuggestion = (suggestion: Suggestion) => {
+    cancelDebounce();
     standaloneSearchBoxController.selectSuggestion(suggestion.rawValue);
     setDropdownVisible(false);
   };
@@ -140,8 +198,9 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                 ref={searchInputRef}
                 className="form-control"
                 name="value"
+                title="Search query"
                 type="text"
-                value={state.value}
+                value={inputValue}
                 onChange={(e) => handleChange(e.target.value)}
               />
               <button
@@ -150,7 +209,7 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  state.value === ''
+                  inputValue === ''
                 }
                 onClick={clear}
               >
@@ -162,7 +221,7 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                 disabled={
                   state.isLoading ||
                   state.isLoadingSuggestions ||
-                  state.value === ''
+                  inputValue === ''
                 }
               >
                 Submit
@@ -185,6 +244,7 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                               key={suggestion.rawValue}
                               type="button"
                               className="list-group-item list-group-item-action"
+                              title={suggestion.rawValue}
                               dangerouslySetInnerHTML={{
                                 __html: suggestion.highlightedValue,
                               }}
@@ -207,7 +267,8 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
                         controller={instantProductsController}
                         querySuggestions={state.suggestions.map(s => s.rawValue)}
                         currentQuery={state.value}
-                        enableFallback={true}
+                        isLoadingSuggestions={state.isLoadingSuggestions}
+                        minChars={minChars}
                       />
                     </div>
                   </div>

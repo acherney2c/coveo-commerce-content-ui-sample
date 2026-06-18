@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/control-has-associated-label */
 import { useEffect, useRef, useState } from 'react';
 import type {
   CategoryFacetSearchResult,
@@ -70,7 +71,6 @@ export default function SearchBox(props: ISearchBoxProps) {
 
   const updateControllers = (value: string) => {
     searchBoxController.updateText(value);
-    instantProductsController.updateQuery(value);
     filterSuggestionsGeneratorController.filterSuggestions.forEach(
       (controller) => {
         controller.updateQuery(value);
@@ -106,7 +106,6 @@ export default function SearchBox(props: ISearchBoxProps) {
     setDropdownVisible(false);
     searchInputRef.current?.focus();
     searchBoxController.clear();
-    instantProductsController.updateQuery('');
     filterSuggestionsGeneratorController.filterSuggestions.forEach(
       (controller) => {
         controller.clear();
@@ -156,6 +155,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                 ref={searchInputRef}
                 className="form-control"
                 name="value"
+                title="Search query"
                 type="text"
                 value={inputValue}
                 onChange={(e) => handleChange(e.target.value)}
@@ -201,6 +201,7 @@ export default function SearchBox(props: ISearchBoxProps) {
                               key={suggestion.rawValue}
                               type="button"
                               className="list-group-item list-group-item-action"
+                              title={suggestion.rawValue}
                               dangerouslySetInnerHTML={{
                                 __html: suggestion.highlightedValue,
                               }}
@@ -225,7 +226,8 @@ export default function SearchBox(props: ISearchBoxProps) {
                         controller={instantProductsController}
                         querySuggestions={state.suggestions.map(s => s.rawValue)}
                         currentQuery={state.value}
-                        enableFallback={true}
+                        isLoadingSuggestions={state.isLoadingSuggestions}
+                        minChars={minChars}
                       />
                     </div>
                   </div>
