@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useSuggestionDrivenInstantProducts } from './use-suggestion-driven-instant-products';
+import { useSuggestionDrivenInstantProducts } from './use-suggestion-driven-instant-products.js';
 import type { Product } from '@coveo/headless/commerce';
 
 const mockProduct = {
