@@ -47,6 +47,7 @@ export function useSuggestionDrivenInstantProducts(
   const { products, isLoading, suggestions, isLoadingSuggestions, typedQuery, onQuery, minChars = 3 } = options;
 
   const desiredQuery = suggestions.length > 0 ? suggestions[0] : typedQuery;
+  const trimmedDesiredQuery = desiredQuery.trim();
   const hasProducts = products.length > 0;
   // The Typed Query must reach the threshold before either call is driven.
   const meetsThreshold = typedQuery.trim().length >= minChars;
@@ -62,14 +63,14 @@ export function useSuggestionDrivenInstantProducts(
       lastFiredRef.current = null;
       return;
     }
-    if (desiredQuery.trim().length === 0) {
+    if (trimmedDesiredQuery.length === 0) {
       return;
     }
-    if (desiredQuery === lastFiredRef.current) {
+    if (trimmedDesiredQuery === lastFiredRef.current) {
       return;
     }
-    lastFiredRef.current = desiredQuery;
-    onQuery(desiredQuery.trim());
+    lastFiredRef.current = trimmedDesiredQuery;
+    onQuery(trimmedDesiredQuery);
   }, [isLoadingSuggestions, meetsThreshold, desiredQuery, onQuery]);
 
   // The desired query whose ProductSuggest load we've actually observed start.
@@ -77,8 +78,8 @@ export function useSuggestionDrivenInstantProducts(
   // load we never saw (so a late, empty render does not flash "No results").
   const [loadingQuery, setLoadingQuery] = useState<string | null>(null);
   useEffect(() => {
-    if (isLoading && desiredQuery.trim().length > 0) {
-      setLoadingQuery(desiredQuery);
+    if (isLoading && trimmedDesiredQuery.length > 0) {
+      setLoadingQuery(trimmedDesiredQuery);
     }
   }, [isLoading, desiredQuery]);
 
@@ -87,8 +88,8 @@ export function useSuggestionDrivenInstantProducts(
     meetsThreshold &&
     !isLoadingSuggestions &&
     !isLoading &&
-    desiredQuery.trim().length > 0 &&
-    desiredQuery === loadingQuery;
+    trimmedDesiredQuery.length > 0 &&
+    trimmedDesiredQuery === loadingQuery;
 
   // The First Suggestion is surfaced as a notice only when it differs from the
   // Typed Query under a case-insensitive, trimmed comparison, so trivial
