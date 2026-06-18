@@ -111,6 +111,32 @@ describe('useSuggestionDrivenInstantProducts', () => {
 
     expect(onQuery).toHaveBeenCalledTimes(1);
     expect(onQuery).toHaveBeenCalledWith('drill bit');
+
+    // User types yet another character; QuerySuggest re-runs and settles again
+    // with the same First Suggestion. The dedup ref must block a second fire.
+    await act(async () => {
+      rerender({
+        products: [],
+        isLoading: false,
+        suggestions: ['drill bit'],
+        isLoadingSuggestions: true,
+        typedQuery: 'dril',
+        onQuery,
+      });
+    });
+    await act(async () => {
+      rerender({
+        products: [],
+        isLoading: false,
+        suggestions: ['drill bit'],
+        isLoadingSuggestions: false,
+        typedQuery: 'dril',
+        onQuery,
+      });
+    });
+
+    expect(onQuery).toHaveBeenCalledTimes(1);
+    expect(onQuery).toHaveBeenCalledWith('drill bit');
   });
 
   it('shows "No results" only once the typed-query load settles empty with no suggestions', async () => {

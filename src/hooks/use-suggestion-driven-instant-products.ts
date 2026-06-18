@@ -36,6 +36,8 @@ export interface UseSuggestionDrivenInstantProductsResult {
    * otherwise null.
    */
   suggestionNotice: string | null;
+  /** The query that actually drives ProductSuggest (trimmed). */
+  effectiveQuery: string;
 }
 
 /**
@@ -109,7 +111,8 @@ export function useSuggestionDrivenInstantProducts(
       : null;
 
   return {
-    shouldShowNoResults: settled && !hasProducts && (suggestions.length === 0 || suggestionNotice === null),
+    shouldShowNoResults: settled && !hasProducts,
     suggestionNotice,
+    effectiveQuery: trimmedDesiredQuery,
   };
 }

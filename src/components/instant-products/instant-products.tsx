@@ -45,7 +45,7 @@ export default function InstantProducts(props: IInstantProductsProps) {
   }, [controller]);
 
   // The hook owns the decision of which query drives Instant Products.
-  const { shouldShowNoResults, suggestionNotice } = useSuggestionDrivenInstantProducts({
+  const { shouldShowNoResults, suggestionNotice, effectiveQuery } = useSuggestionDrivenInstantProducts({
     products: state.products,
     isLoading: state.isLoading,
     suggestions: querySuggestions,
@@ -96,7 +96,7 @@ export default function InstantProducts(props: IInstantProductsProps) {
         ) : shouldShowNoResults ? (
           <div className="list-group-item text-muted">
             {/* React JSX automatically escapes text content, preventing XSS */}
-            No results found for <strong>"<span>{currentQuery}</span>"</strong>
+            No results found for <strong>"<span>{effectiveQuery}</span>"</strong>
           </div>
         ) : (
           <div className="list-group-item text-muted">
