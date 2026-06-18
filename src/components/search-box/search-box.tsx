@@ -96,7 +96,10 @@ export default function SearchBox(props: ISearchBoxProps) {
       return;
     }
 
-    setDropdownVisible(false);
+    // Leave the dropdown as-is while the debounce is pending. An already-visible
+    // dropdown stays mounted so the three suggestion boxes update in place (only
+    // when content actually changes) instead of unmounting/remounting — and so
+    // flashing — on every keystroke. updateControllers shows it when it fires.
     debounceTimer.current = setTimeout(() => {
       debounceTimer.current = null;
       updateControllers(value);
