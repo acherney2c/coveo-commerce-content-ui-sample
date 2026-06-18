@@ -413,4 +413,53 @@ describe('useSuggestionDrivenInstantProducts', () => {
 
     expect(onQuery).toHaveBeenCalledTimes(2);
   });
+
+  it('fires ProductSuggest again after dropping below threshold while suggestions are loading', async () => {
+    const onQuery = vi.fn();
+
+    const { rerender } = renderHook(
+      (props) => useSuggestionDrivenInstantProducts(props),
+      {
+        initialProps: {
+          products: [] as Product[],
+          isLoading: false,
+          suggestions: ['drill bit'],
+          isLoadingSuggestions: false,
+          typedQuery: 'drill',
+          onQuery,
+        },
+      }
+    );
+
+    await act(async () => {});
+    expect(onQuery).toHaveBeenCalledTimes(1);
+    expect(onQuery).toHaveBeenCalledWith('drill bit');
+
+    // User backspaces below the threshold while suggestions are still loading;
+    // lastFiredRef must reset even though isLoadingSuggestions is true.
+    await act(async () => {
+      rerender({
+        products: [],
+        isLoading: false,
+        suggestions: ['drill bit'],
+        isLoadingSuggestions: true,
+        typedQuery: 'dr',
+        onQuery,
+      });
+    });
+
+    // User re-types the same query: onQuery should fire again.
+    await act(async () => {
+      rerender({
+        products: [],
+        isLoading: false,
+        suggestions: ['drill bit'],
+        isLoadingSuggestions: false,
+        typedQuery: 'drill',
+        onQuery,
+      });
+    });
+
+    expect(onQuery).toHaveBeenCalledTimes(2);
+  });
 });

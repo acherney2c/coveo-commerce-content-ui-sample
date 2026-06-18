@@ -56,13 +56,13 @@ export function useSuggestionDrivenInstantProducts(
   const lastFiredRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isLoadingSuggestions) {
-      return;
-    }
     if (!meetsThreshold) {
       // Reset so re-entering the same query after dropping below the threshold
       // (or clearing) fires onQuery again instead of being deduplicated.
       lastFiredRef.current = null;
+      return;
+    }
+    if (isLoadingSuggestions) {
       return;
     }
     if (trimmedDesiredQuery.length === 0) {
