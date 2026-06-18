@@ -159,8 +159,12 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     e.preventDefault();
     const trimmedValue = inputValue.trim();
     if (trimmedValue === '') {
+      clear();
       return;
     }
+    // Normalize the visible input to the trimmed value so trailing/leading
+    // whitespace is removed from the field on submit.
+    setInputValue(trimmedValue);
     searchInputRef.current?.focus();
     // Flush any pending debounce so the controller is always in sync with
     // the visible input before submitting, regardless of debounceMs/minChars.
