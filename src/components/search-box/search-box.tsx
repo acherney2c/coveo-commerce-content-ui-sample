@@ -16,7 +16,6 @@ interface ISearchBoxProps {
   instantProductsController: InstantProducts;
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
   debounceMs?: number;
-  minChars?: number;
 }
 
 export default function SearchBox(props: ISearchBoxProps) {
@@ -25,7 +24,6 @@ export default function SearchBox(props: ISearchBoxProps) {
     instantProductsController,
     filterSuggestionsGeneratorController,
     debounceMs = 300,
-    minChars = 3,
   } = props;
 
   const {
@@ -101,7 +99,6 @@ export default function SearchBox(props: ISearchBoxProps) {
             <SearchSuggestionsDropdown
               state={state}
               isOpen={isOpen}
-              minChars={minChars}
               filterSuggestionsGeneratorController={filterSuggestionsGeneratorController}
               instantProductsController={instantProductsController}
               onSelectSuggestion={handleSelectSuggestion}

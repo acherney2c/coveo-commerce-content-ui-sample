@@ -10,13 +10,14 @@ import type {
 } from '@coveo/headless/commerce';
 import { useEffectiveQuery } from '../../hooks/use-effective-query.js';
 import QuerySuggestions from './columns/query-suggestions.js';
-import FilterSuggestions from './columns/filter-suggestions.js';
-import InstantProducts from './columns/instant-products.js';
+import DropdownFilterSuggestions from './columns/filter-suggestions.js';
+import DropdownInstantProducts from './columns/instant-products.js';
 
 export interface SearchSuggestionsDropdownProps {
   state: SearchBoxState;
   isOpen: boolean;
-  minChars: number;
+  /** Minimum characters before Filter/Product columns fire. Forwarded to useEffectiveQuery which owns the gate (ADR 0002). */
+  minChars?: number;
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
   instantProductsController: HeadlessInstantProducts;
   onSelectSuggestion: (suggestion: Suggestion) => void;
@@ -71,7 +72,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
           {/* Filter Suggestions — delete this block + the column file to remove the feature. */}
           {meetsThreshold && (
             <div className="col-12 col-md-4">
-              <FilterSuggestions
+              <DropdownFilterSuggestions
                 controller={filterSuggestionsGeneratorController}
                 committedQuery={committedQuery}
                 onSelect={onSelectFilterSuggestion}
@@ -82,11 +83,11 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
           {/* Instant Products — delete this block + the column file to remove the feature. */}
           {meetsThreshold && (
             <div className="col-12 col-md-4">
-              <InstantProducts
+              <DropdownInstantProducts
                 controller={instantProductsController}
                 committedQuery={committedQuery}
                 typedQuery={state.value}
-                onProductSelect={onSelectProduct}
+                onSelectProduct={onSelectProduct}
               />
             </div>
           )}

@@ -1,18 +1,18 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type {
-  InstantProducts,
+  InstantProducts as HeadlessInstantProducts,
   InstantProductsState,
 } from '@coveo/headless/commerce';
 import InstantProductsView from '../../instant-products/instant-products.js';
 
 export interface InstantProductsProps {
-  controller: InstantProducts;
+  controller: HeadlessInstantProducts;
   /** The committed Effective Query the products should reflect (null = nothing committed). */
   committedQuery: string | null;
   /** The exact text the user typed (for the "Showing results for" notice comparison). */
   typedQuery: string;
   /** Called after a product is selected (e.g. to close the dropdown). */
-  onProductSelect?: () => void;
+  onSelectProduct?: () => void;
 }
 
 const normalize = (v: string) => v.trim().toLowerCase();
@@ -23,8 +23,8 @@ const normalize = (v: string) => v.trim().toLowerCase();
  * the controller's own state — so the whole feature can be removed by deleting this
  * component and its one usage in the dropdown, with no shared hook or driver edits.
  */
-export default function InstantProducts(props: InstantProductsProps) {
-  const { controller, committedQuery, typedQuery, onProductSelect } = props;
+export default function DropdownInstantProducts(props: InstantProductsProps) {
+  const { controller, committedQuery, typedQuery, onSelectProduct } = props;
 
   const [state, setState] = useState<InstantProductsState>(controller.state);
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function InstantProducts(props: InstantProductsProps) {
       effectiveQuery={committedQuery ?? ''}
       suggestionNotice={suggestionNotice}
       shouldShowNoResults={shouldShowNoResults}
-      onProductSelect={onProductSelect}
+      onSelectProduct={onSelectProduct}
     />
   );
 }

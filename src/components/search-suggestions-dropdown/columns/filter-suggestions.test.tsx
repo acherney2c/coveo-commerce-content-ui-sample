@@ -1,6 +1,6 @@
 import { render, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import FilterSuggestions from './filter-suggestions.js';
+import DropdownFilterSuggestions from './filter-suggestions.js';
 
 function createFilterGen(count = 2) {
   const filters = Array.from({ length: count }, (_, i) => ({
@@ -16,14 +16,14 @@ function createFilterGen(count = 2) {
   } as any;
 }
 
-describe('FilterSuggestions', () => {
+describe('DropdownFilterSuggestions', () => {
   afterEach(() => cleanup());
 
   it('drives updateQuery on every filter controller when committedQuery is set', () => {
     const controller = createFilterGen(2);
 
     render(
-      <FilterSuggestions
+      <DropdownFilterSuggestions
         controller={controller}
         committedQuery="kayak"
         onSelect={vi.fn()}
@@ -38,19 +38,19 @@ describe('FilterSuggestions', () => {
     const controller = createFilterGen(1);
 
     const { rerender } = render(
-      <FilterSuggestions controller={controller} committedQuery="kayak" onSelect={vi.fn()} />
+      <DropdownFilterSuggestions controller={controller} committedQuery="kayak" onSelect={vi.fn()} />
     );
     expect(controller.filterSuggestions[0].updateQuery).toHaveBeenCalledTimes(1);
 
     // Re-render with the same committedQuery → no extra drive.
     rerender(
-      <FilterSuggestions controller={controller} committedQuery="kayak" onSelect={vi.fn()} />
+      <DropdownFilterSuggestions controller={controller} committedQuery="kayak" onSelect={vi.fn()} />
     );
     expect(controller.filterSuggestions[0].updateQuery).toHaveBeenCalledTimes(1);
 
     // New committedQuery → drive again.
     rerender(
-      <FilterSuggestions controller={controller} committedQuery="canoe" onSelect={vi.fn()} />
+      <DropdownFilterSuggestions controller={controller} committedQuery="canoe" onSelect={vi.fn()} />
     );
     expect(controller.filterSuggestions[0].updateQuery).toHaveBeenCalledTimes(2);
     expect(controller.filterSuggestions[0].updateQuery).toHaveBeenLastCalledWith('canoe');
@@ -60,7 +60,7 @@ describe('FilterSuggestions', () => {
     const controller = createFilterGen(1);
 
     render(
-      <FilterSuggestions controller={controller} committedQuery={null} onSelect={vi.fn()} />
+      <DropdownFilterSuggestions controller={controller} committedQuery={null} onSelect={vi.fn()} />
     );
 
     expect(controller.filterSuggestions[0].updateQuery).not.toHaveBeenCalled();

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type {
   CategoryFacetSearchResult,
   CategoryFilterSuggestions,
-  FilterSuggestions,
+  FilterSuggestions as HeadlessFilterSuggestions,
   FilterSuggestionsGenerator,
   RegularFacetSearchResult,
 } from '@coveo/headless/commerce';
@@ -13,7 +13,7 @@ export interface FilterSuggestionsProps {
   /** The committed Effective Query the filter suggestions should reflect (null = clear). */
   committedQuery: string | null;
   onSelect: (args: {
-    controller: FilterSuggestions | CategoryFilterSuggestions;
+    controller: HeadlessFilterSuggestions | CategoryFilterSuggestions;
     value: RegularFacetSearchResult | CategoryFacetSearchResult;
   }) => void;
 }
@@ -24,7 +24,7 @@ export interface FilterSuggestionsProps {
  * whole feature can be removed by deleting this component and its one usage in the
  * dropdown — no shared hook or driver edits required.
  */
-export default function FilterSuggestions(props: FilterSuggestionsProps) {
+export default function DropdownFilterSuggestions(props: FilterSuggestionsProps) {
   const { controller, committedQuery, onSelect } = props;
 
   useEffect(() => {

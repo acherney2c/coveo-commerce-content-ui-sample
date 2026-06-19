@@ -58,7 +58,6 @@ describe('SearchSuggestionsDropdown — Instant Products stability', () => {
         <SearchSuggestionsDropdown
           state={makeState({ value: 'kay', suggestions: ['kayak'], isLoadingSuggestions: false })}
           isOpen
-          minChars={3}
           filterSuggestionsGeneratorController={filterGen}
           instantProductsController={instantProducts}
           onSelectSuggestion={vi.fn()}
@@ -78,7 +77,6 @@ describe('SearchSuggestionsDropdown — Instant Products stability', () => {
         <SearchSuggestionsDropdown
           state={makeState({ value: 'kaya', suggestions: ['kayak'], isLoadingSuggestions: true })}
           isOpen
-          minChars={3}
           filterSuggestionsGeneratorController={filterGen}
           instantProductsController={instantProducts}
           onSelectSuggestion={vi.fn()}
@@ -96,7 +94,6 @@ describe('SearchSuggestionsDropdown — Instant Products stability', () => {
         <SearchSuggestionsDropdown
           state={makeState({ value: 'kaya', suggestions: ['kayak'], isLoadingSuggestions: false })}
           isOpen
-          minChars={3}
           filterSuggestionsGeneratorController={filterGen}
           instantProductsController={instantProducts}
           onSelectSuggestion={vi.fn()}

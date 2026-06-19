@@ -32,7 +32,6 @@ interface IStandaloneSearchBoxProps {
   instantProductsController: InstantProducts;
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
   debounceMs?: number;
-  minChars?: number;
 }
 
 export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
@@ -41,7 +40,6 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     instantProductsController,
     filterSuggestionsGeneratorController,
     debounceMs = 300,
-    minChars = 3,
   } = props;
 
   const navigate = useNavigate();
@@ -130,7 +128,6 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
             <SearchSuggestionsDropdown
               state={state}
               isOpen={isOpen}
-              minChars={minChars}
               filterSuggestionsGeneratorController={filterSuggestionsGeneratorController}
               instantProductsController={instantProductsController}
               onSelectSuggestion={handleSelectSuggestion}

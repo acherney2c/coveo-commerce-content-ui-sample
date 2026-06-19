@@ -12,7 +12,6 @@ import StandaloneSearchBox from './standalone-search-box.js';
  */
 
 const DEBOUNCE_MS = 300;
-const MIN_CHARS = 3;
 
 function createStandaloneController(initial = '') {
   const listeners = new Set<() => void>();
@@ -85,7 +84,6 @@ function renderBox() {
         instantProductsController={instantProductsController}
         filterSuggestionsGeneratorController={filterSuggestionsGeneratorController}
         debounceMs={DEBOUNCE_MS}
-        minChars={MIN_CHARS}
       />
     </MemoryRouter>
   );
