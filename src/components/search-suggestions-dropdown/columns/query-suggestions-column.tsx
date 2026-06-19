@@ -1,0 +1,40 @@
+import type { Suggestion } from '@coveo/headless/commerce';
+
+export interface QuerySuggestionsColumnProps {
+  suggestions: Suggestion[];
+  /** Whether QuerySuggest is loading (shows "Loading..." instead of "None"). */
+  isLoading: boolean;
+  onSelect: (suggestion: Suggestion) => void;
+}
+
+/**
+ * Self-contained Query Suggestions column. Purely presentational — Query
+ * Suggestions are driven by the search box's own `updateText`, so this column
+ * only renders the list and reports selections.
+ */
+export default function QuerySuggestionsColumn(props: QuerySuggestionsColumnProps) {
+  const { suggestions, isLoading, onSelect } = props;
+
+  return (
+    <div className="list-group shadow">
+      <div className="list-group-item text-muted small">Query Suggestions</div>
+      {suggestions.length > 0 ? (
+        suggestions.map((suggestion) => (
+          <button
+            key={suggestion.rawValue}
+            type="button"
+            className="list-group-item list-group-item-action"
+            title={suggestion.rawValue}
+            // eslint-disable-next-line jsx-a11y/control-has-associated-label
+            dangerouslySetInnerHTML={{ __html: suggestion.highlightedValue }}
+            onClick={() => onSelect(suggestion)}
+          />
+        ))
+      ) : (
+        <div className="list-group-item text-muted">
+          {isLoading ? 'Loading...' : 'None'}
+        </div>
+      )}
+    </div>
+  );
+}

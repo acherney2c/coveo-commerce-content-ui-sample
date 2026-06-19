@@ -42,7 +42,6 @@ export default function SearchBox(props: ISearchBoxProps) {
     closeDropdown,
   } = useSearchSuggestionsDropdown({
     searchBoxController,
-    filterSuggestionsGeneratorController,
     debounceMs,
   });
 

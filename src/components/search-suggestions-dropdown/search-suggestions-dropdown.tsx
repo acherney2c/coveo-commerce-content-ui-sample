@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
 import type {
   FilterSuggestionsGenerator,
   InstantProducts,
-  InstantProductsState,
   SearchBoxState,
   Suggestion,
   CategoryFacetSearchResult,
@@ -10,9 +8,10 @@ import type {
   FilterSuggestions,
   RegularFacetSearchResult,
 } from '@coveo/headless/commerce';
-import { useEffectiveQueryDriver } from '../../hooks/use-effective-query-driver.js';
-import InstantProductsComponent from '../instant-products/instant-products.js';
-import FilterSuggestionsGeneratorComponent from '../filter-suggestions/filter-suggestions-generator.js';
+import { useEffectiveQuery } from '../../hooks/use-effective-query.js';
+import QuerySuggestionsColumn from './columns/query-suggestions-column.js';
+import FilterSuggestionsColumn from './columns/filter-suggestions-column.js';
+import InstantProductsColumn from './columns/instant-products-column.js';
 
 export interface SearchSuggestionsDropdownProps {
   state: SearchBoxState;
@@ -38,19 +37,10 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
     onSelectFilterSuggestion,
   } = props;
 
-  // Subscribe to instant products state
-  const [ipState, setIpState] = useState<InstantProductsState>(instantProductsController.state);
-  useEffect(() => {
-    const unsubscribe = instantProductsController.subscribe(() => {
-      setIpState(instantProductsController.state);
-    });
-    return () => unsubscribe();
-  }, [instantProductsController]);
-
-  // The generalized hook: sole caller of both controllers
-  const { effectiveQuery, meetsThreshold, committedQuery } = useEffectiveQueryDriver({
-    instantProductsController,
-    filterSuggestionsGeneratorController,
+  // Single owner of the Effective Query. Each column drives its own controller
+  // off `committedQuery`, so the whole dropdown reflects one query (ADR 0003)
+  // while each suggestion source stays self-contained and independently removable.
+  const { meetsThreshold, committedQuery } = useEffectiveQuery({
     suggestions: state.suggestions.map((s) => s.rawValue),
     isLoadingSuggestions: state.isLoadingSuggestions,
     typedQuery: state.value,
@@ -60,78 +50,40 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
   if (!isOpen) return null;
 
   const hasSuggestions = state.suggestions.length > 0;
-  const isLoadingSuggestions = state.isLoadingSuggestions;
-
-  // Content-gated: if settled empty (no suggestions, not loading) hide entirely
-  if (!hasSuggestions && !isLoadingSuggestions) return null;
-
-  // Instant Products display is driven by the COMMITTED query (what the products
-  // actually reflect), not the live suggestion-loading flag — so the product list
-  // and notice don't flash on every keystroke while QuerySuggest reloads.
-  const hasProducts = ipState.products.length > 0;
-  const isCommitted = committedQuery !== null;
-  // "No results" only once a query is committed and its product load has settled empty.
-  const shouldShowNoResults = isCommitted && !ipState.isLoading && !hasProducts;
-
-  // The notice reflects the committed query when it differs from what the user typed
-  // (case-insensitive). Derived from committedQuery so it stays stable through loading.
-  const normalize = (v: string) => v.trim().toLowerCase();
-  const suggestionNotice =
-    committedQuery && normalize(committedQuery) !== normalize(state.value)
-      ? committedQuery
-      : null;
+  // Content-gated: hide entirely on a settled-empty result (no flash through loading).
+  if (!hasSuggestions && !state.isLoadingSuggestions) return null;
 
   return (
     <div className="position-relative mt-2">
       <div className="search-dropdown">
         <div className="row g-2">
-          {/* Query Suggestions — always shown (ungated) */}
+          {/* Query Suggestions — always shown (ungated). */}
           <div className={meetsThreshold ? 'col-12 col-md-4' : 'col-12'}>
-            <div className="list-group shadow">
-              <div className="list-group-item text-muted small">
-                Query Suggestions
-              </div>
-              {state.suggestions.length > 0 ? (
-                state.suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion.rawValue}
-                    type="button"
-                    className="list-group-item list-group-item-action"
-                    title={suggestion.rawValue}
-                    dangerouslySetInnerHTML={{
-                      __html: suggestion.highlightedValue,
-                    }}
-                    onClick={() => onSelectSuggestion(suggestion)}
-                  />
-                ))
-              ) : (
-                <div className="list-group-item text-muted">
-                  {isLoadingSuggestions ? 'Loading...' : 'None'}
-                </div>
-              )}
-            </div>
+            <QuerySuggestionsColumn
+              suggestions={state.suggestions}
+              isLoading={state.isLoadingSuggestions}
+              onSelect={onSelectSuggestion}
+            />
           </div>
 
-          {/* Filter Suggestions — gated by meetsThreshold from hook */}
+          {/* Filter Suggestions — delete this block + the column file to remove the feature. */}
           {meetsThreshold && (
             <div className="col-12 col-md-4">
-              <FilterSuggestionsGeneratorComponent
+              <FilterSuggestionsColumn
                 controller={filterSuggestionsGeneratorController}
-                onClickFilterSuggestion={onSelectFilterSuggestion}
+                committedQuery={committedQuery}
+                onSelect={onSelectFilterSuggestion}
               />
             </div>
           )}
 
-          {/* Instant Products — gated by meetsThreshold from hook */}
+          {/* Instant Products — delete this block + the column file to remove the feature. */}
           {meetsThreshold && (
             <div className="col-12 col-md-4">
-              <InstantProductsComponent
+              <InstantProductsColumn
                 controller={instantProductsController}
-                products={ipState.products}
-                isLoading={ipState.isLoading}
-                effectiveQuery={committedQuery ?? effectiveQuery}
-                suggestionNotice={suggestionNotice}
-                shouldShowNoResults={shouldShowNoResults}
+                committedQuery={committedQuery}
+                typedQuery={state.value}
               />
             </div>
           )}

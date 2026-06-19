@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
-  FilterSuggestionsGenerator,
   SearchBox as HeadlessSearchBox,
   SearchBoxState,
   StandaloneSearchBox as HeadlessStandaloneSearchBox,
@@ -9,7 +8,6 @@ import type {
 
 export interface UseSearchSuggestionsDropdownOptions {
   searchBoxController: HeadlessSearchBox | HeadlessStandaloneSearchBox;
-  filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
   debounceMs?: number;
   onRedirect?: (redirectTo: string, value: string) => void;
 }
@@ -31,7 +29,7 @@ export interface UseSearchSuggestionsDropdownResult {
 export function useSearchSuggestionsDropdown(
   options: UseSearchSuggestionsDropdownOptions
 ): UseSearchSuggestionsDropdownResult {
-  const { searchBoxController, filterSuggestionsGeneratorController, debounceMs = 300, onRedirect } = options;
+  const { searchBoxController, debounceMs = 300, onRedirect } = options;
 
   const [state, setState] = useState<SearchBoxState>(searchBoxController.state);
   const [inputValue, setInputValue] = useState(searchBoxController.state.value);
@@ -107,7 +105,6 @@ export function useSearchSuggestionsDropdown(
       setInputValue('');
       setIsOpen(false);
       searchBoxController.clear();
-      filterSuggestionsGeneratorController.filterSuggestions.forEach((c: any) => c.clear?.());
       return;
     }
     setInputValue(value);
@@ -117,7 +114,7 @@ export function useSearchSuggestionsDropdown(
       debounceTimer.current = null;
       searchBoxController.updateText(value);
     }, debounceMs);
-  }, [searchBoxController, filterSuggestionsGeneratorController, debounceMs]);
+  }, [searchBoxController, debounceMs]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();

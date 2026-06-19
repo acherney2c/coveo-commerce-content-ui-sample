@@ -60,7 +60,6 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     closeDropdown,
   } = useSearchSuggestionsDropdown({
     searchBoxController: standaloneSearchBoxController,
-    filterSuggestionsGeneratorController,
     debounceMs,
     onRedirect: (redirectTo, value) => {
       const redirectUrl = new URL(redirectTo, window.location.origin);
