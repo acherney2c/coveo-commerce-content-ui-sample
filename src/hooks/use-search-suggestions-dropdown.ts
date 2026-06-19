@@ -63,6 +63,7 @@ export function useSearchSuggestionsDropdown(
       if (containerRef.current && containerRef.current.contains(e.target as Node)) {
         return;
       }
+      cancelDebounce();
       setIsOpen(false);
     };
     document.addEventListener('mousedown', onMouseDown);
@@ -73,6 +74,7 @@ export function useSearchSuggestionsDropdown(
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        cancelDebounce();
         setIsOpen(false);
       }
     };
@@ -147,6 +149,7 @@ export function useSearchSuggestionsDropdown(
   }, [searchBoxController]);
 
   const closeDropdown = useCallback(() => {
+    cancelDebounce();
     setIsOpen(false);
   }, []);
 
