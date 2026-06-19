@@ -66,4 +66,21 @@ describe('DropdownFilterSuggestions', () => {
     expect(controller.filterSuggestions[0].updateQuery).not.toHaveBeenCalled();
     expect(controller.filterSuggestions[0].clear).toHaveBeenCalled();
   });
+
+  it('clean commit-on-select: updateQuery uses the Effective Query (First Suggestion), not the typed value', () => {
+    const controller = createFilterGen(1);
+
+    // committedQuery="kayak" is the Effective Query (First Suggestion for typed "kay").
+    // The filter controller's updateQuery must receive "kayak" so that when
+    // getSearchParameters() is called on selection, the committed search is the
+    // clean First Suggestion — no partial typed text, no wildcard.
+    render(
+      <DropdownFilterSuggestions controller={controller} committedQuery="kayak" onSelect={vi.fn()} />
+    );
+
+    expect(controller.filterSuggestions[0].updateQuery).toHaveBeenCalledTimes(1);
+    expect(controller.filterSuggestions[0].updateQuery).toHaveBeenCalledWith('kayak');
+    // Specifically NOT called with the typed partial "kay":
+    expect(controller.filterSuggestions[0].updateQuery).not.toHaveBeenCalledWith('kay');
+  });
 });

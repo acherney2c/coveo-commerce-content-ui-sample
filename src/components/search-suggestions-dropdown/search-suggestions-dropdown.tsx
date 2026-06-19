@@ -43,7 +43,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
   // Single owner of the Effective Query. Each column drives its own controller
   // off `committedQuery`, so the whole dropdown reflects one query (ADR 0003)
   // while each suggestion source stays self-contained and independently removable.
-  const { meetsThreshold, committedQuery } = useEffectiveQuery({
+  const { committedQuery } = useEffectiveQuery({
     suggestions: state.suggestions.map((s) => s.rawValue),
     isLoadingSuggestions: state.isLoadingSuggestions,
     typedQuery: state.value,
@@ -61,7 +61,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
       <div className="search-dropdown">
         <div className="row g-2">
           {/* Query Suggestions — always shown (ungated). */}
-          <div className={meetsThreshold ? 'col-12 col-md-4' : 'col-12'}>
+          <div className={committedQuery !== null ? 'col-12 col-md-4' : 'col-12'}>
             <QuerySuggestions
               suggestions={state.suggestions}
               isLoading={state.isLoadingSuggestions}
@@ -70,7 +70,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
           </div>
 
           {/* Filter Suggestions — delete this block + the column file to remove the feature. */}
-          {meetsThreshold && (
+          {committedQuery !== null && (
             <div className="col-12 col-md-4">
               <DropdownFilterSuggestions
                 controller={filterSuggestionsGeneratorController}
@@ -81,7 +81,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
           )}
 
           {/* Instant Products — delete this block + the column file to remove the feature. */}
-          {meetsThreshold && (
+          {committedQuery !== null && (
             <div className="col-12 col-md-4">
               <DropdownInstantProducts
                 controller={instantProductsController}
