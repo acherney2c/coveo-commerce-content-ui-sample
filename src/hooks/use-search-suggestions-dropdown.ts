@@ -101,7 +101,7 @@ export function useSearchSuggestionsDropdown(
   }, [searchBoxController]);
 
   const handleChange = useCallback((value: string) => {
-    if (value === '') {
+    if (value.trim() === '') {
       cancelDebounce();
       setInputValue('');
       setIsOpen(false);
