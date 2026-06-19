@@ -4,14 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import StandaloneSearchBox from './standalone-search-box.js';
 
 /**
- * Regression coverage for the search dropdown re-render bug.
+ * Dropdown visibility and stability tests for the new focus-driven model.
  *
- * The dropdown hosts all three suggestion boxes (Query Suggestions, Filter
- * Suggestions, Instant Products) inside a single `{dropdownVisible && (...)}`
- * block. Once the dropdown is shown, typing a further character that is still
- * above the minChars threshold must NOT unmount/remount that block — otherwise
- * all three boxes flash and re-render on every keystroke even when the
- * suggestions are unchanged.
+ * The dropdown is now content-gated: it opens on focus/type but only renders
+ * when there's content (suggestions or loading). Below minChars only the Query
+ * Suggestions column shows. Above minChars all three columns show.
  */
 
 const DEBOUNCE_MS = 300;
@@ -19,6 +16,7 @@ const MIN_CHARS = 3;
 
 function createStandaloneController(initial = '') {
   const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((l) => l());
   const ctrl: any = {
     state: {
       value: initial,
@@ -33,15 +31,20 @@ function createStandaloneController(initial = '') {
     },
     updateText: vi.fn((value: string) => {
       ctrl.state = { ...ctrl.state, value };
-      listeners.forEach((l) => l());
+      notify();
     }),
+    showSuggestions: vi.fn(),
     clear: vi.fn(() => {
-      ctrl.state = { ...ctrl.state, value: '' };
-      listeners.forEach((l) => l());
+      ctrl.state = { ...ctrl.state, value: '', suggestions: [] };
+      notify();
     }),
     submit: vi.fn(),
     selectSuggestion: vi.fn(),
     afterRedirection: vi.fn(),
+    emit(patch: Partial<typeof ctrl.state>) {
+      ctrl.state = { ...ctrl.state, ...patch };
+      notify();
+    },
   };
   return ctrl;
 }
@@ -96,57 +99,140 @@ describe('StandaloneSearchBox dropdown stability', () => {
   });
 
   afterEach(() => {
-    // Unmount first so the component's debounce-cancel cleanup runs; any
-    // remaining timers then fire against nothing (no out-of-act state updates).
     cleanup();
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
   });
 
-  it('keeps the dropdown (all three boxes) mounted when typing another above-threshold character', () => {
-    const { container } = renderBox();
+  it('shows the dropdown on focus when Popular Queries (suggestions) are returned', () => {
+    const { container, standaloneSearchBoxController } = renderBox();
     const input = screen.getByTitle('Search query');
 
-    // Type to the threshold, then let the debounce fire so the dropdown shows.
+    // Focus the input
     act(() => {
+      fireEvent.focus(input);
+    });
+
+    // Simulate controller returning suggestions (Popular Queries)
+    act(() => {
+      standaloneSearchBoxController.emit({
+        suggestions: [{ rawValue: 'popular query', highlightedValue: 'popular query' }],
+        isLoadingSuggestions: false,
+      });
+    });
+
+    expect(container.querySelector('.search-dropdown')).not.toBeNull();
+    expect(screen.getByText('Query Suggestions')).toBeInTheDocument();
+  });
+
+  it('keeps the dropdown mounted when typing another above-threshold character', () => {
+    const { container, standaloneSearchBoxController } = renderBox();
+    const input = screen.getByTitle('Search query');
+
+    // Focus and type to threshold
+    act(() => {
+      fireEvent.focus(input);
       fireEvent.change(input, { target: { value: 'dri' } });
     });
+
+    // Debounce fires, controller returns suggestions
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
+    });
+    act(() => {
+      standaloneSearchBoxController.emit({
+        suggestions: [{ rawValue: 'drill', highlightedValue: 'drill' }],
+        isLoadingSuggestions: false,
+      });
     });
 
     const dropdownBefore = container.querySelector('.search-dropdown');
     expect(dropdownBefore).not.toBeNull();
-    expect(screen.getByText('Query Suggestions')).toBeInTheDocument();
 
-    // Type one more character (still above threshold). The dropdown must remain
-    // mounted as the SAME DOM node — it should update in place, not flash away.
+    // Type one more character — dropdown stays mounted (same DOM node)
     act(() => {
       fireEvent.change(input, { target: { value: 'dril' } });
     });
 
     const dropdownAfter = container.querySelector('.search-dropdown');
     expect(dropdownAfter).not.toBeNull();
-    // Same node identity proves React kept it mounted (no unmount/remount).
     expect(dropdownAfter).toBe(dropdownBefore);
   });
 
-  it('hides the dropdown only when the input drops below the threshold', () => {
-    const { container } = renderBox();
+  it('below minChars shows only the Query Suggestions column (no filter/products)', () => {
+    const { container, standaloneSearchBoxController } = renderBox();
     const input = screen.getByTitle('Search query');
 
     act(() => {
-      fireEvent.change(input, { target: { value: 'dri' } });
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: 'dr' } });
     });
+
+    // Controller returns suggestions at 2 chars
     act(() => {
       vi.advanceTimersByTime(DEBOUNCE_MS);
     });
+    act(() => {
+      standaloneSearchBoxController.emit({
+        value: 'dr',
+        suggestions: [{ rawValue: 'drill', highlightedValue: 'drill' }],
+        isLoadingSuggestions: false,
+      });
+    });
+
+    expect(container.querySelector('.search-dropdown')).not.toBeNull();
+    expect(screen.getByText('Query Suggestions')).toBeInTheDocument();
+    // Filter Suggestions and Instant Products columns should not be rendered
+    expect(screen.queryByText('Filter Suggestions')).toBeNull();
+  });
+
+  it('hides the dropdown when content settles empty (no flash on transient empty)', () => {
+    const { container, standaloneSearchBoxController } = renderBox();
+    const input = screen.getByTitle('Search query');
+
+    // Focus — no suggestions returned
+    act(() => {
+      fireEvent.focus(input);
+    });
+
+    // Controller returns empty suggestions (settled)
+    act(() => {
+      standaloneSearchBoxController.emit({
+        suggestions: [],
+        isLoadingSuggestions: false,
+      });
+    });
+
+    // Content-gated: no dropdown painted
+    expect(container.querySelector('.search-dropdown')).toBeNull();
+  });
+
+  it('closes on Escape and reopens on re-focus', () => {
+    const { container, standaloneSearchBoxController } = renderBox();
+    const input = screen.getByTitle('Search query');
+
+    act(() => {
+      fireEvent.focus(input);
+    });
+    act(() => {
+      standaloneSearchBoxController.emit({
+        suggestions: [{ rawValue: 'popular', highlightedValue: 'popular' }],
+        isLoadingSuggestions: false,
+      });
+    });
     expect(container.querySelector('.search-dropdown')).not.toBeNull();
 
-    // Backspace below the threshold: dropdown should hide.
+    // Escape closes
     act(() => {
-      fireEvent.change(input, { target: { value: 'dr' } });
+      fireEvent.keyDown(document, { key: 'Escape' });
     });
     expect(container.querySelector('.search-dropdown')).toBeNull();
+
+    // Re-focus reopens
+    act(() => {
+      fireEvent.focus(input);
+    });
+    // Suggestions still in state from before
+    expect(container.querySelector('.search-dropdown')).not.toBeNull();
   });
 });
