@@ -1,27 +1,27 @@
 import type {
   FilterSuggestionsGenerator,
-  InstantProducts,
+  InstantProducts as HeadlessInstantProducts,
   SearchBoxState,
   Suggestion,
   CategoryFacetSearchResult,
   CategoryFilterSuggestions,
-  FilterSuggestions,
+  FilterSuggestions as HeadlessFilterSuggestions,
   RegularFacetSearchResult,
 } from '@coveo/headless/commerce';
 import { useEffectiveQuery } from '../../hooks/use-effective-query.js';
-import QuerySuggestionsColumn from './columns/query-suggestions-column.js';
-import FilterSuggestionsColumn from './columns/filter-suggestions-column.js';
-import InstantProductsColumn from './columns/instant-products-column.js';
+import QuerySuggestions from './columns/query-suggestions.js';
+import FilterSuggestions from './columns/filter-suggestions.js';
+import InstantProducts from './columns/instant-products.js';
 
 export interface SearchSuggestionsDropdownProps {
   state: SearchBoxState;
   isOpen: boolean;
   minChars: number;
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
-  instantProductsController: InstantProducts;
+  instantProductsController: HeadlessInstantProducts;
   onSelectSuggestion: (suggestion: Suggestion) => void;
   onSelectFilterSuggestion: (args: {
-    controller: FilterSuggestions | CategoryFilterSuggestions;
+    controller: HeadlessFilterSuggestions | CategoryFilterSuggestions;
     value: RegularFacetSearchResult | CategoryFacetSearchResult;
   }) => void;
 }
@@ -59,7 +59,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
         <div className="row g-2">
           {/* Query Suggestions — always shown (ungated). */}
           <div className={meetsThreshold ? 'col-12 col-md-4' : 'col-12'}>
-            <QuerySuggestionsColumn
+            <QuerySuggestions
               suggestions={state.suggestions}
               isLoading={state.isLoadingSuggestions}
               onSelect={onSelectSuggestion}
@@ -69,7 +69,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
           {/* Filter Suggestions — delete this block + the column file to remove the feature. */}
           {meetsThreshold && (
             <div className="col-12 col-md-4">
-              <FilterSuggestionsColumn
+              <FilterSuggestions
                 controller={filterSuggestionsGeneratorController}
                 committedQuery={committedQuery}
                 onSelect={onSelectFilterSuggestion}
@@ -80,7 +80,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
           {/* Instant Products — delete this block + the column file to remove the feature. */}
           {meetsThreshold && (
             <div className="col-12 col-md-4">
-              <InstantProductsColumn
+              <InstantProducts
                 controller={instantProductsController}
                 committedQuery={committedQuery}
                 typedQuery={state.value}

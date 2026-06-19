@@ -5,7 +5,7 @@ import type {
 } from '@coveo/headless/commerce';
 import InstantProductsView from '../../instant-products/instant-products.js';
 
-export interface InstantProductsColumnProps {
+export interface InstantProductsProps {
   controller: InstantProducts;
   /** The committed Effective Query the products should reflect (null = nothing committed). */
   committedQuery: string | null;
@@ -21,7 +21,7 @@ const normalize = (v: string) => v.trim().toLowerCase();
  * the controller's own state — so the whole feature can be removed by deleting this
  * component and its one usage in the dropdown, with no shared hook or driver edits.
  */
-export default function InstantProductsColumn(props: InstantProductsColumnProps) {
+export default function InstantProducts(props: InstantProductsProps) {
   const { controller, committedQuery, typedQuery } = props;
 
   const [state, setState] = useState<InstantProductsState>(controller.state);

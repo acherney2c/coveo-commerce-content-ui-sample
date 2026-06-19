@@ -8,7 +8,7 @@ import type {
 } from '@coveo/headless/commerce';
 import FilterSuggestionsGeneratorComponent from '../../filter-suggestions/filter-suggestions-generator.js';
 
-export interface FilterSuggestionsColumnProps {
+export interface FilterSuggestionsProps {
   controller: FilterSuggestionsGenerator;
   /** The committed Effective Query the filter suggestions should reflect (null = clear). */
   committedQuery: string | null;
@@ -24,7 +24,7 @@ export interface FilterSuggestionsColumnProps {
  * whole feature can be removed by deleting this component and its one usage in the
  * dropdown — no shared hook or driver edits required.
  */
-export default function FilterSuggestionsColumn(props: FilterSuggestionsColumnProps) {
+export default function FilterSuggestions(props: FilterSuggestionsProps) {
   const { controller, committedQuery, onSelect } = props;
 
   useEffect(() => {

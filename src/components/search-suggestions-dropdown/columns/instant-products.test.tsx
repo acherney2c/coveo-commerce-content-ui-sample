@@ -1,7 +1,7 @@
 import { render, screen, act, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import InstantProductsColumn from './instant-products-column.js';
+import InstantProducts from './instant-products.js';
 import type { Product } from '@coveo/headless/commerce';
 
 const product = {
@@ -31,7 +31,7 @@ function createInstantProducts(initial: { products: Product[]; isLoading: boolea
 function renderColumn(props: { committedQuery: string | null; typedQuery: string; controller: any }) {
   return render(
     <MemoryRouter>
-      <InstantProductsColumn
+      <InstantProducts
         controller={props.controller}
         committedQuery={props.committedQuery}
         typedQuery={props.typedQuery}
@@ -40,7 +40,7 @@ function renderColumn(props: { committedQuery: string | null; typedQuery: string
   );
 }
 
-describe('InstantProductsColumn', () => {
+describe('InstantProducts', () => {
   afterEach(() => cleanup());
 
   it('drives updateQuery with the committed query and re-drives only on change', () => {
@@ -52,7 +52,7 @@ describe('InstantProductsColumn', () => {
 
     rerender(
       <MemoryRouter>
-        <InstantProductsColumn controller={controller} committedQuery="kayak" typedQuery="kaya" />
+        <InstantProducts controller={controller} committedQuery="kayak" typedQuery="kaya" />
       </MemoryRouter>
     );
     // Same committed query → no extra drive.
@@ -98,7 +98,7 @@ describe('InstantProductsColumn', () => {
     // Typed query changes but committed query holds (same first suggestion).
     rerender(
       <MemoryRouter>
-        <InstantProductsColumn controller={controller} committedQuery="kayak" typedQuery="kaya" />
+        <InstantProducts controller={controller} committedQuery="kayak" typedQuery="kaya" />
       </MemoryRouter>
     );
     expect(screen.getByText(/Kayak Pro/)).toBeInTheDocument();

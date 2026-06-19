@@ -1,6 +1,6 @@
 import type { Suggestion } from '@coveo/headless/commerce';
 
-export interface QuerySuggestionsColumnProps {
+export interface QuerySuggestionsProps {
   suggestions: Suggestion[];
   /** Whether QuerySuggest is loading (shows "Loading..." instead of "None"). */
   isLoading: boolean;
@@ -12,7 +12,7 @@ export interface QuerySuggestionsColumnProps {
  * Suggestions are driven by the search box's own `updateText`, so this column
  * only renders the list and reports selections.
  */
-export default function QuerySuggestionsColumn(props: QuerySuggestionsColumnProps) {
+export default function QuerySuggestions(props: QuerySuggestionsProps) {
   const { suggestions, isLoading, onSelect } = props;
 
   return (
