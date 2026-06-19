@@ -24,6 +24,7 @@ export interface SearchSuggestionsDropdownProps {
     controller: HeadlessFilterSuggestions | CategoryFilterSuggestions;
     value: RegularFacetSearchResult | CategoryFacetSearchResult;
   }) => void;
+  onSelectProduct?: () => void;
 }
 
 export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdownProps) {
@@ -35,6 +36,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
     instantProductsController,
     onSelectSuggestion,
     onSelectFilterSuggestion,
+    onSelectProduct,
   } = props;
 
   // Single owner of the Effective Query. Each column drives its own controller
@@ -84,6 +86,7 @@ export default function SearchSuggestionsDropdown(props: SearchSuggestionsDropdo
                 controller={instantProductsController}
                 committedQuery={committedQuery}
                 typedQuery={state.value}
+                onProductSelect={onSelectProduct}
               />
             </div>
           )}

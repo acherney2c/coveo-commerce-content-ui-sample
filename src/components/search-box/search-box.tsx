@@ -106,6 +106,7 @@ export default function SearchBox(props: ISearchBoxProps) {
               instantProductsController={instantProductsController}
               onSelectSuggestion={handleSelectSuggestion}
               onSelectFilterSuggestion={selectFilterSuggestion}
+              onSelectProduct={closeDropdown}
             />
           </div>
         </form>

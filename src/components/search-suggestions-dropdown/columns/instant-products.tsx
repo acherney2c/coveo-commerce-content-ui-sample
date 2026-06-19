@@ -11,6 +11,8 @@ export interface InstantProductsProps {
   committedQuery: string | null;
   /** The exact text the user typed (for the "Showing results for" notice comparison). */
   typedQuery: string;
+  /** Called after a product is selected (e.g. to close the dropdown). */
+  onProductSelect?: () => void;
 }
 
 const normalize = (v: string) => v.trim().toLowerCase();
@@ -22,7 +24,7 @@ const normalize = (v: string) => v.trim().toLowerCase();
  * component and its one usage in the dropdown, with no shared hook or driver edits.
  */
 export default function InstantProducts(props: InstantProductsProps) {
-  const { controller, committedQuery, typedQuery } = props;
+  const { controller, committedQuery, typedQuery, onProductSelect } = props;
 
   const [state, setState] = useState<InstantProductsState>(controller.state);
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function InstantProducts(props: InstantProductsProps) {
       effectiveQuery={committedQuery ?? ''}
       suggestionNotice={suggestionNotice}
       shouldShowNoResults={shouldShowNoResults}
+      onProductSelect={onProductSelect}
     />
   );
 }

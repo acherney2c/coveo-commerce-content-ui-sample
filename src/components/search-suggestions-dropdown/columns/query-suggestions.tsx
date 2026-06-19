@@ -1,3 +1,5 @@
+// This is a reference/sample implementation. Accessibility is intentionally left
+// for implementers to address in their production code.
 import type { Suggestion } from '@coveo/headless/commerce';
 
 export interface QuerySuggestionsProps {
@@ -25,6 +27,9 @@ export default function QuerySuggestions(props: QuerySuggestionsProps) {
             type="button"
             className="list-group-item list-group-item-action"
             title={suggestion.rawValue}
+            // Accessibility: dangerouslySetInnerHTML renders highlighted HTML from
+            // the Coveo API. In production, pair this with an aria-label for screen
+            // readers and ensure the HTML is sanitised server-side.
             // eslint-disable-next-line jsx-a11y/control-has-associated-label
             dangerouslySetInnerHTML={{ __html: suggestion.highlightedValue }}
             onClick={() => onSelect(suggestion)}

@@ -12,6 +12,8 @@ interface IInstantProductsProps {
   suggestionNotice: string | null;
   /** Whether to show "No results" */
   shouldShowNoResults: boolean;
+  /** Called after a product is selected (e.g. to close the dropdown). */
+  onProductSelect?: () => void;
 }
 
 export default function InstantProducts(props: IInstantProductsProps) {
@@ -22,6 +24,7 @@ export default function InstantProducts(props: IInstantProductsProps) {
     effectiveQuery,
     suggestionNotice,
     shouldShowNoResults,
+    onProductSelect,
   } = props;
   const navigate = useNavigate();
 
@@ -30,6 +33,7 @@ export default function InstantProducts(props: IInstantProductsProps) {
       .interactiveProduct({ options: { product } })
       .select();
     navigate(buildProductUrl(product));
+    onProductSelect?.();
   };
 
   return (
