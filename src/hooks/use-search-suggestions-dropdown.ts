@@ -3,6 +3,7 @@ import type {
   SearchBox as HeadlessSearchBox,
   SearchBoxState,
   StandaloneSearchBox as HeadlessStandaloneSearchBox,
+  StandaloneSearchBoxState,
   Suggestion,
 } from '@coveo/headless/commerce';
 
@@ -48,9 +49,9 @@ export function useSearchSuggestionsDropdown(
         setInputValue(s.value);
       }
       // Standalone redirect reaction
-      if (onRedirect && 'redirectTo' in s && (s as any).redirectTo) {
-        onRedirect((s as any).redirectTo, s.value);
-        (searchBoxController as any).afterRedirection();
+      if (onRedirect && 'redirectTo' in s && (s as StandaloneSearchBoxState).redirectTo) {
+        onRedirect((s as StandaloneSearchBoxState).redirectTo, s.value);
+        (searchBoxController as HeadlessStandaloneSearchBox).afterRedirection();
       }
     });
     return () => unsubscribe();
