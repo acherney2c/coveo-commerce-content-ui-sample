@@ -62,7 +62,6 @@ export default function StandaloneSearchBox(props: IStandaloneSearchBoxProps) {
     searchBoxController: standaloneSearchBoxController,
     filterSuggestionsGeneratorController,
     debounceMs,
-    minChars,
     onRedirect: (redirectTo, value) => {
       const redirectUrl = new URL(redirectTo, window.location.origin);
       navigate({

@@ -44,7 +44,6 @@ export default function SearchBox(props: ISearchBoxProps) {
     searchBoxController,
     filterSuggestionsGeneratorController,
     debounceMs,
-    minChars,
   });
 
   const selectFilterSuggestion = (args: {

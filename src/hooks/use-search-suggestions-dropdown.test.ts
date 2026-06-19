@@ -260,20 +260,18 @@ describe('useSearchSuggestionsDropdown', () => {
     });
   });
 
-  describe('minChars gating — query suggestions ungated, filter updateQuery gated', () => {
-    it('below minChars: handleChange calls updateText (query suggestions fire) but NOT filter updateQuery', () => {
+  describe('handleChange drives only Query Suggestions (updateText)', () => {
+    it('debounces updateText so Query Suggestions fire at any length, ungated', () => {
       const searchBoxController = createMockSearchBoxController();
       const filterUpdate = vi.fn();
-      const filterClear = vi.fn();
       const filterSuggestionsGeneratorController = {
-        filterSuggestions: [{ updateQuery: filterUpdate, clear: filterClear }],
+        filterSuggestions: [{ updateQuery: filterUpdate, clear: vi.fn() }],
       } as any;
 
       const { result } = renderHook(() =>
         useSearchSuggestionsDropdown({
           searchBoxController,
           filterSuggestionsGeneratorController,
-          minChars: 3,
           debounceMs: 300,
         })
       );
@@ -281,21 +279,19 @@ describe('useSearchSuggestionsDropdown', () => {
       act(() => {
         result.current.handleChange('dr');
       });
-
-      // Let debounce fire
       act(() => {
         vi.advanceTimersByTime(300);
       });
 
-      // updateText called (query suggestions ungated)
+      // updateText fires (Query Suggestions ungated, even at 2 chars)
       expect(searchBoxController.updateText).toHaveBeenCalledWith('dr');
-      // filter updateQuery NOT called (below minChars)
+      // handleChange NEVER calls filter.updateQuery — Filter Suggestions and
+      // Instant Products are driven by useEffectiveQueryDriver from the Effective
+      // Query, not by raw keystrokes.
       expect(filterUpdate).not.toHaveBeenCalled();
-      // dropdown opens
-      expect(result.current.isOpen).toBe(true);
     });
 
-    it('below minChars: handleChange opens the dropdown', () => {
+    it('opens the dropdown immediately on keystroke (before the debounce fires)', () => {
       const searchBoxController = createMockSearchBoxController();
       const filterSuggestionsGeneratorController = createMockFilterSuggestionsGenerator();
 
@@ -303,7 +299,6 @@ describe('useSearchSuggestionsDropdown', () => {
         useSearchSuggestionsDropdown({
           searchBoxController,
           filterSuggestionsGeneratorController,
-          minChars: 3,
           debounceMs: 300,
         })
       );
@@ -312,70 +307,7 @@ describe('useSearchSuggestionsDropdown', () => {
         result.current.handleChange('a');
       });
 
-      // isOpen set immediately (not waiting for debounce)
       expect(result.current.isOpen).toBe(true);
-    });
-  });
-
-  describe('at-threshold boundary — filter suggestions DO fire at minChars', () => {
-    it('at minChars: handleChange calls updateText after debounce (filter driven by suggestion hook, not handleChange)', () => {
-      const searchBoxController = createMockSearchBoxController();
-      const filterUpdate = vi.fn();
-      const filterSuggestionsGeneratorController = {
-        filterSuggestions: [{ updateQuery: filterUpdate, clear: vi.fn() }],
-      } as any;
-
-      const { result } = renderHook(() =>
-        useSearchSuggestionsDropdown({
-          searchBoxController,
-          filterSuggestionsGeneratorController,
-          minChars: 3,
-          debounceMs: 300,
-        })
-      );
-
-      act(() => {
-        result.current.handleChange('dri');
-      });
-
-      // Before debounce: not called yet
-      expect(searchBoxController.updateText).not.toHaveBeenCalled();
-
-      act(() => {
-        vi.advanceTimersByTime(300);
-      });
-
-      expect(searchBoxController.updateText).toHaveBeenCalledWith('dri');
-      // filter.updateQuery is NOT called by handleChange — it's driven by the
-      // suggestion hook (useSuggestionDrivenInstantProducts) via onFilterQuery
-      expect(filterUpdate).not.toHaveBeenCalled();
-    });
-
-    it('just below minChars: filter updateQuery does NOT fire', () => {
-      const searchBoxController = createMockSearchBoxController();
-      const filterUpdate = vi.fn();
-      const filterSuggestionsGeneratorController = {
-        filterSuggestions: [{ updateQuery: filterUpdate, clear: vi.fn() }],
-      } as any;
-
-      const { result } = renderHook(() =>
-        useSearchSuggestionsDropdown({
-          searchBoxController,
-          filterSuggestionsGeneratorController,
-          minChars: 3,
-          debounceMs: 300,
-        })
-      );
-
-      act(() => {
-        result.current.handleChange('dr');
-      });
-      act(() => {
-        vi.advanceTimersByTime(300);
-      });
-
-      expect(searchBoxController.updateText).toHaveBeenCalledWith('dr');
-      expect(filterUpdate).not.toHaveBeenCalled();
     });
   });
 

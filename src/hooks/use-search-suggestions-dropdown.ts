@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
+  FilterSuggestionsGenerator,
   SearchBox as HeadlessSearchBox,
   SearchBoxState,
   StandaloneSearchBox as HeadlessStandaloneSearchBox,
   Suggestion,
 } from '@coveo/headless/commerce';
-import type { FilterSuggestionsGenerator } from '@coveo/headless/commerce';
 
 export interface UseSearchSuggestionsDropdownOptions {
   searchBoxController: HeadlessSearchBox | HeadlessStandaloneSearchBox;
   filterSuggestionsGeneratorController: FilterSuggestionsGenerator;
   debounceMs?: number;
-  minChars?: number;
   onRedirect?: (redirectTo: string, value: string) => void;
 }
 
